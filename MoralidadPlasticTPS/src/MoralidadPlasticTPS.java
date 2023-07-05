@@ -15,7 +15,6 @@ import javax.swing.JScrollPane;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.event.ActionListener;
@@ -26,13 +25,13 @@ import java.awt.event.WindowEvent;
 public class MoralidadPlasticTPS {
 
 	private JFrame frmMoralidadPlasticProducts;
-	private JTextField textField;
+	private JTextField textSearch;
 	private JTable tableInventory;
 	private JTextField textQuantity;
 	private JTable tableTransaction;
-	private JTextField textField_2;
+	private JTextField textAmount;
 	private DefaultTableModel model_inventory, model_transaction;
-	private String inventoryInfo = "inventoryInfo.txt", transactionInfo = "transactionInfo.txt";
+	private String inventoryInfo = "inventoryInfo.txt", transactionInfo;
 	private String item, unit, quantity, unitPrice, grandTotal, newLine, transactionItem, modified, originalLine, entry;
 	private BufferedReader br;
 	private LocalDateTime now;
@@ -58,6 +57,7 @@ public class MoralidadPlasticTPS {
 				}
 			}
 		});
+		
 	}
 
 	/**
@@ -162,6 +162,21 @@ public class MoralidadPlasticTPS {
 		}
 	}
 
+	public void addToItem(String keyword, int quantity) {
+		String line = findLine(transactionInfo, keyword);
+
+		if (line != null) {
+			String[] addItem = line.split("/");
+			addItem[1] = "" + (quantity + Integer.parseInt(addItem[1]));
+			addItem[3] = "" + (Integer.parseInt(addItem[1]) * Integer.parseInt(addItem[2]));
+			String combinedString = String.join("/", addItem);
+			edit(transactionInfo, line, combinedString);
+			updateTransaction(transactionInfo);
+		} else {
+			System.out.println("Line not found for the search keyword: " + keyword);
+		}
+	}
+
 	public String modifyLine() {
 		int row = tableInventory.getSelectedRow();
 		item = model_inventory.getValueAt(row, 0).toString();
@@ -198,7 +213,7 @@ public class MoralidadPlasticTPS {
 	}
 
 	public void clearItem(int row) {
-		
+
 		String item = model_transaction.getValueAt(row, 0).toString();
 		String quantity = model_transaction.getValueAt(row, 1).toString();
 		String unitPrice = model_transaction.getValueAt(row, 2).toString();
@@ -235,12 +250,12 @@ public class MoralidadPlasticTPS {
 		}
 	}
 
-	public void updateTransaction() {
+	public void updateTransaction(String filePath) {
 
 		model_transaction.setRowCount(0);
 
 		try {
-			br = new BufferedReader(new FileReader(transactionInfo));
+			br = new BufferedReader(new FileReader(filePath));
 			Object[] tableLines = br.lines().toArray();
 
 			for (int i = 0; i < tableLines.length; i++) {
@@ -264,7 +279,39 @@ public class MoralidadPlasticTPS {
 
 		return totalSum;
 	}
+	
+    private void transferFileContents(String sourceFilePath, String destinationFilePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(sourceFilePath));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(destinationFilePath))) {
 
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.write(line);
+                writer.newLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void clearFileContents(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // Clear the file by opening it in write mode
+            // This will remove all existing contents
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void save(String destination) {
+        String sourceFilePath = transactionInfo;
+        String destinationFilePath = destination;
+
+        transferFileContents(sourceFilePath, destinationFilePath);
+        clearFileContents(sourceFilePath);
+    }
+    
 	/**
 	 * Initialize the contents of the frame.
 	 * -----------------------------------------------------------------------------------------------------------------------------------------
@@ -322,19 +369,19 @@ public class MoralidadPlasticTPS {
 		lblNewLabel_1_1.setBounds(20, 482, 109, 13);
 		panelTransaction.add(lblNewLabel_1_1);
 
-		JLabel lblNewLabel_1_1_1 = new JLabel("Change:");
-		lblNewLabel_1_1_1.setBounds(20, 505, 109, 13);
-		panelTransaction.add(lblNewLabel_1_1_1);
+		JLabel lblChange = new JLabel("Change:");
+		lblChange.setBounds(20, 505, 109, 13);
+		panelTransaction.add(lblChange);
 
-		textField = new JTextField();
-		textField.setBounds(20, 28, 416, 19);
-		panelInventory.add(textField);
-		textField.setColumns(10);
+		textSearch = new JTextField();
+		textSearch.setBounds(20, 28, 416, 19);
+		panelInventory.add(textSearch);
+		textSearch.setColumns(10);
 
-		textField_2 = new JTextField();
-		textField_2.setColumns(10);
-		textField_2.setBounds(139, 479, 87, 19);
-		panelTransaction.add(textField_2);
+		textAmount = new JTextField();
+		textAmount.setColumns(10);
+		textAmount.setBounds(139, 479, 87, 19);
+		panelTransaction.add(textAmount);
 
 		textQuantity = new JTextField();
 		textQuantity.setText("Quantity");
@@ -371,28 +418,34 @@ public class MoralidadPlasticTPS {
 						modified = modifyLine(transactionQuantity);
 
 						if (!modified.equals("error")) {
-							edit(inventoryInfo, originalLine, newLine);
-							updateInventory();
+							
+							if (findLine(transactionInfo, item) == null) {
+								edit(inventoryInfo, originalLine, newLine);
+								updateInventory();
 
-							transactionItem = item + "/" + transactionQuantity + "/" + unitPrice + "/" + totalPrice;
+								transactionItem = item + "/" + transactionQuantity + "/" + unitPrice + "/" + totalPrice;
 
-							try {
-								FileWriter fw = new FileWriter(transactionInfo, true);
-								BufferedWriter bw = new BufferedWriter(fw);
+								try {
+									FileWriter fw = new FileWriter(transactionInfo, true);
+									BufferedWriter bw = new BufferedWriter(fw);
 
-								bw.write(transactionItem);
-								bw.newLine();
-								bw.close();
-							} catch (IOException e1) {
-								e1.printStackTrace();
+									bw.write(transactionItem);
+									bw.newLine();
+									bw.close();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							} else {
+								edit(inventoryInfo, originalLine, newLine);
+								updateInventory();
+								addToItem(item, transactionQuantity);
 							}
-
-							updateTransaction();
-							lblTotal.setText("Total: " + total());
-
 						} else {
 							JOptionPane.showMessageDialog(null, "Not enough in inventory.");
 						}
+						
+						updateTransaction(transactionInfo);
+						lblTotal.setText("Total: " + total());
 					}
 				}
 			}
@@ -435,12 +488,40 @@ public class MoralidadPlasticTPS {
 
 		btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
-
 			public void actionPerformed(ActionEvent e) {
-				now = LocalDateTime.now();
-				formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm");
-				formattedDateTime = now.format(formatter);
-				transactionFile = new File(formattedDateTime + ".txt");
+				
+				System.out.println(!textAmount.getText().matches("-?\\d+"));
+				System.out.println(textAmount.getText());
+				
+				if (!textAmount.getText().matches("-?\\d+")) {
+					JOptionPane.showMessageDialog(null, "Invalid input in amount entered");
+				} else if (total() > Integer.parseInt(textAmount.getText())) {
+					JOptionPane.showMessageDialog(null, "Amount paid is less than total.");
+				} else {
+					int result = JOptionPane.showConfirmDialog(null, "Transaction complete?", "Confirmation", JOptionPane.YES_NO_OPTION);
+					
+					if (result == JOptionPane.YES_OPTION) {
+						now = LocalDateTime.now();
+						formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm");
+						formattedDateTime = now.format(formatter);
+						String savedTransaction = formattedDateTime + ".txt";
+						
+						save(savedTransaction);
+						updateTransaction(savedTransaction);
+						
+						btnNew.setEnabled(true);
+						btnAdd.setEnabled(false);
+						btnSave.setEnabled(false);
+						btnClear.setEnabled(false);
+						btnDelete.setEnabled(false);
+						btnCancel.setEnabled(false);
+						
+						textQuantity.setText("Quantity");
+						
+						lblTotal.setText("Total: " + total());
+						lblChange.setText("Change: " + (Integer.parseInt(textAmount.getText()) - total()));
+					}
+				}
 			}
 
 		});
@@ -451,14 +532,19 @@ public class MoralidadPlasticTPS {
 		btnClear = new JButton("Clear");
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear these items?", "Confirmation", JOptionPane.YES_NO_OPTION);
-				if (result == JOptionPane.YES_OPTION) {
-					while (tableTransaction.getRowCount() != 0) {
-						int row = 0;
-						clearItem(row);
+				if (tableTransaction.getRowCount() != 0) {
+					int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to clear these items?", "Confirmation", JOptionPane.YES_NO_OPTION);
+					if (result == JOptionPane.YES_OPTION) {
+						while (tableTransaction.getRowCount() != 0) {
+							int row = 0;
+							clearItem(row);
+						}
 					}
+					lblTotal.setText("Total: " + total());
+				} else {
+					JOptionPane.showMessageDialog(null, "The table is empty.");
 				}
-				lblTotal.setText("Total: " + total());
+
 			}
 		});
 		btnClear.setEnabled(false);
@@ -476,6 +562,15 @@ public class MoralidadPlasticTPS {
 
 					try {
 
+						while (tableTransaction.getRowCount() != 0) {
+							int row = 0;
+							clearItem(row);
+						}
+						
+						lblTotal.setText("Total: " + total());
+						
+						textQuantity.setText("Quantity");
+						
 						FileWriter fw = new FileWriter(transactionInfo);
 
 						JOptionPane.showMessageDialog(null, "Transaction has been cancelled.");
@@ -486,7 +581,7 @@ public class MoralidadPlasticTPS {
 						btnDelete.setEnabled(false);
 						btnCancel.setEnabled(false);
 
-						updateTransaction();
+						updateTransaction(transactionInfo);
 
 					} catch (IOException e1) {
 						e1.printStackTrace();
@@ -501,6 +596,9 @@ public class MoralidadPlasticTPS {
 		btnNew = new JButton("New");
 		btnNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				
+				transactionInfo = "transactionInfo.txt";
+				updateTransaction(transactionInfo);
 
 				btnAdd.setEnabled(true);
 				btnSave.setEnabled(true);
@@ -508,6 +606,8 @@ public class MoralidadPlasticTPS {
 				btnClear.setEnabled(true);
 				btnDelete.setEnabled(true);
 				btnCancel.setEnabled(true);
+				
+				textAmount.setText("");
 
 				JOptionPane.showMessageDialog(null, "Starting new transaction.");
 			}
@@ -626,7 +726,28 @@ public class MoralidadPlasticTPS {
 		model_inventory.setColumnIdentifiers(column_inventory);
 		tableInventory.setModel(model_inventory);
 		scrollPane.setViewportView(tableInventory);
-
+		
+		/**
+		 * Before closing.
+		 */
+		frmMoralidadPlasticProducts.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				int result = JOptionPane.showConfirmDialog(null, "Exit the application?\nYour changes won't be saved.", "Confirmation", JOptionPane.YES_NO_OPTION);
+				if (result == JOptionPane.YES_OPTION) {
+					if (tableTransaction.getRowCount() != 0) {
+						while (tableTransaction.getRowCount() != 0) {
+							int row = 0;
+							clearItem(row);
+						}
+					}
+					System.exit(0);
+				} else {
+					frmMoralidadPlasticProducts.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+				}
+			}
+		});
+		
 		/**
 		 * btnTrial button for temporary testing.
 		 * -------------------------------------------------------------------------------------------------------
@@ -636,7 +757,7 @@ public class MoralidadPlasticTPS {
 		btnTrial.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				updateInventory();
-				updateTransaction();
+				updateTransaction(transactionInfo);
 			}
 		});
 		btnTrial.setBounds(266, 653, 98, 21);
