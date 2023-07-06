@@ -6,9 +6,11 @@ import java.awt.Font;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.border.EtchedBorder;
 import java.awt.Color;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
@@ -520,6 +522,8 @@ public class MoralidadPlasticTPS {
 						
 						lblTotal.setText("Total: " + total());
 						lblChange.setText("Change: " + (Integer.parseInt(textAmount.getText()) - total()));
+						
+						JOptionPane.showMessageDialog(null, "Transaction completed. Your file has been saved.");
 					}
 				}
 			}
@@ -697,6 +701,13 @@ public class MoralidadPlasticTPS {
 		panelInventory.add(btnInDelete);
 
 		btnSearch = new JButton("Search");
+//		btnSearch.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				TableRowSorter<DefaultTableModel> obj = new TableRowSorter<>(model_inventory);
+//				tableInventory.setRowSorter(obj);
+//				obj.setRowFilter(RowFilter.regexFilter(textSearch.getText()));
+//			}
+//		});
 		btnSearch.setBounds(446, 27, 98, 21);
 		panelInventory.add(btnSearch);
 
@@ -714,7 +725,12 @@ public class MoralidadPlasticTPS {
 		panelInventory.add(scrollPane);
 
 		tableTransaction = new JTable();
-		model_transaction = new DefaultTableModel();
+		model_transaction = new DefaultTableModel() {
+			@Override
+			public boolean isCellEditable(int row, int column) {
+                return column == 0;
+            }
+		};
 		Object[] column_transaction = { "Item", "Quantity", "Unit price", "Price" };
 		model_transaction.setColumnIdentifiers(column_transaction);
 		tableTransaction.setModel(model_transaction);
@@ -753,15 +769,15 @@ public class MoralidadPlasticTPS {
 		 * -------------------------------------------------------------------------------------------------------
 		 */
 
-		JButton btnTrial = new JButton("TrialButton");
-		btnTrial.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				updateInventory();
-				updateTransaction(transactionInfo);
-			}
-		});
-		btnTrial.setBounds(266, 653, 98, 21);
-		frmMoralidadPlasticProducts.getContentPane().add(btnTrial);
+//		JButton btnTrial = new JButton("TrialButton");
+//		btnTrial.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				updateInventory();
+//				updateTransaction(transactionInfo);
+//			}
+//		});
+//		btnTrial.setBounds(266, 653, 98, 21);
+//		frmMoralidadPlasticProducts.getContentPane().add(btnTrial);
 
 		updateInventory();
 		tableInventory.getColumnModel().getColumn(0).setPreferredWidth(250);
