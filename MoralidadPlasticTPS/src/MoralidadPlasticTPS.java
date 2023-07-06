@@ -752,12 +752,11 @@ public class MoralidadPlasticTPS {
 		frmMoralidadPlasticProducts.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int result = JOptionPane.showConfirmDialog(null, "Exit the application?\nYour changes won't be saved.", "Confirmation", JOptionPane.YES_NO_OPTION);
+				int result = JOptionPane.showConfirmDialog(null, "Exit the application?\nUnsaved changes will not be saved.", "Confirmation", JOptionPane.YES_NO_OPTION);
 				if (result == JOptionPane.YES_OPTION) {
 					if (tableTransaction.getRowCount() != 0) {
 						while (tableTransaction.getRowCount() != 0) {
-							int row = 0;
-							clearItem(row);
+							model_transaction.removeRow(0);
 						}
 					}
 					System.exit(0);
