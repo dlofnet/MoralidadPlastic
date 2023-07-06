@@ -43,6 +43,7 @@ public class MoralidadPlasticTPS {
 	private JButton btnInAdd, btnEdit, btnInDelete, btnSearch, btnAdd, btnNew, btnDelete, btnClear, btnSave, btnCancel;
 	private File inventoryFile, transactionFile;
 	private int transactionQuantity, newQuantity, totalPrice;
+	private boolean saved = false;
 
 	/**
 	 * Launch the application.
@@ -525,6 +526,8 @@ public class MoralidadPlasticTPS {
 						lblTotal.setText("Total: " + total());
 						lblChange.setText("Change: " + (Integer.parseInt(textAmount.getText()) - total()));
 						
+						saved = true;
+						
 						JOptionPane.showMessageDialog(null, "Transaction completed. Your file has been saved.");
 					}
 				}
@@ -614,6 +617,8 @@ public class MoralidadPlasticTPS {
 				btnCancel.setEnabled(true);
 				
 				textAmount.setText("");
+				
+				saved = false;
 
 				JOptionPane.showMessageDialog(null, "Starting new transaction.");
 			}
@@ -752,16 +757,21 @@ public class MoralidadPlasticTPS {
 		frmMoralidadPlasticProducts.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int result = JOptionPane.showConfirmDialog(null, "Exit the application?\nUnsaved changes will not be saved.", "Confirmation", JOptionPane.YES_NO_OPTION);
-				if (result == JOptionPane.YES_OPTION) {
-					if (tableTransaction.getRowCount() != 0) {
-						while (tableTransaction.getRowCount() != 0) {
-							model_transaction.removeRow(0);
-						}
-					}
+				
+				if (saved) {
 					System.exit(0);
 				} else {
-					frmMoralidadPlasticProducts.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+					int result = JOptionPane.showConfirmDialog(null, "You have unsaved changes. Exit anyway?", "Confirmation", JOptionPane.YES_NO_OPTION);
+					if (result == JOptionPane.YES_OPTION) {
+						if (tableTransaction.getRowCount() != 0) {
+							while (tableTransaction.getRowCount() != 0) {
+								model_transaction.removeRow(0);
+							}
+						}
+						System.exit(0);
+					} else {
+						frmMoralidadPlasticProducts.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+					}
 				}
 			}
 		});
