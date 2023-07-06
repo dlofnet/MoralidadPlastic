@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.awt.Toolkit;
 
 public class AddPanel extends JFrame {
 
@@ -41,6 +42,7 @@ public class AddPanel extends JFrame {
 	 * Create the frame.
 	 */
 	public AddPanel() {
+		setIconImage(Toolkit.getDefaultToolkit().getImage("C:\\Users\\Stacey\\eclipse-workspace\\moralidadPlasticTPS\\MPP.png"));
 		setResizable(false);
 		setTitle("Add an item");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

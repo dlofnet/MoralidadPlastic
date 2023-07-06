@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.Toolkit;
 
 public class MoralidadPlasticTPS {
 
@@ -326,6 +327,7 @@ public class MoralidadPlasticTPS {
 		 */
 
 		frmMoralidadPlasticProducts = new JFrame();
+		frmMoralidadPlasticProducts.setIconImage(Toolkit.getDefaultToolkit().getImage("C:\\Users\\Stacey\\eclipse-workspace\\moralidadPlasticTPS\\MPP.png"));
 		frmMoralidadPlasticProducts.setResizable(false);
 		frmMoralidadPlasticProducts.setTitle("Moralidad Plastic Products");
 		frmMoralidadPlasticProducts.setBounds(100, 50, 1280, 720);
