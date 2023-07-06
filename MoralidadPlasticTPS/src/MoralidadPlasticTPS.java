@@ -733,6 +733,7 @@ public class MoralidadPlasticTPS {
                 return column == 0;
             }
 		};
+		
 		Object[] column_transaction = { "Item", "Quantity", "Unit price", "Price" };
 		model_transaction.setColumnIdentifiers(column_transaction);
 		tableTransaction.setModel(model_transaction);
