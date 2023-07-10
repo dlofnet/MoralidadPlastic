@@ -765,7 +765,8 @@ public class MoralidadPlasticTPS {
 					if (result == JOptionPane.YES_OPTION) {
 						if (tableTransaction.getRowCount() != 0) {
 							while (tableTransaction.getRowCount() != 0) {
-								model_transaction.removeRow(0);
+								int row = 0;
+								clearItem(row);
 							}
 						}
 						System.exit(0);
